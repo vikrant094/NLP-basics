@@ -1,0 +1,93 @@
+######################################code for multivariate linear regression
+################################################code##########################
+import numpy as np
+import matplotlib.pyplot as plt
+
+#       # learning rate read data matrix
+data = np.genfromtxt('data.csv', delimiter=',',dtype=float)
+m, n = data.shape
+x = data[:, 0:n-1]
+
+Y = data[:, n-1].reshape(m, 1)
+
+# add unity vector column with size m to the X matrix, to account for theta_0
+ones = np.ones((m, 1))
+X = np.hstack((ones, x))
+iterations = 350       # gradient descent iterations count
+alpha = 0.01 
+theta = np.random.rand(n, 1)  
+def computeCost():
+    hypothesis = np.dot(X, theta);
+    delta = np.dot((hypothesis - Y).transpose(), (hypothesis - Y))
+    return (1 / m) * delta
+def normalizeFeatures():
+    # 1) generate Average vector mu, contains the average of each feature in the X matrix
+    # 2) generate Std. deviation vector sigma, contains the std. dev. of each feature in the X matrix
+    # 3) subtract average value and divide by the standard deviation, for each feature column
+    mu = np.ones((1, n))
+    sigma = np.ones((1, n))
+
+    # range() starts from 1 not 0, to skip the first all-ones constants column in the features matrix
+    for i in range(1,n):
+        mu[0][i] = np.mean(X[:, i])
+        sigma[0][i] = np.std(X[:, i])
+        X[:, i] = (X[:, i] - mu[0][i]) / sigma[0][i]
+
+    return mu, sigma; 
+def plotData():
+    # get rid of X_0 constants column
+    features = X[:, 1:n]
+    a,s=features.shape
+    print(a,s)
+    plt.figure(1)
+    plt.subplot(131)
+    plt.plot(features[:, 0], Y, 'bo')
+    plt.title('Ad dollars spent on TV')
+    plt.ylabel('Sales')
+
+def gradientDescent(theta):
+    # vector to keep track of progression of cost function with each iteration
+    J_history = np.ones((iterations, 1))
+    x1,x2=X.shape
+    t1,t2=theta.shape  
+    for i in range(iterations):
+        delta = np.dot((np.dot(X,theta) - Y).transpose(), X).transpose()
+        theta -= (alpha/m) * delta
+        J_history[i, 0] = computeCost()
+    plt.plot(np.linspace(0, iterations, iterations), J_history)
+    plt.title('Cost function against number of iterations')
+    plt.xlabel('Number of iterations')
+    plt.ylabel('Cost function J(theta)')
+    plt.show()
+    return theta
+def normalEquation():
+    A = np.linalg.pinv(np.dot(X.transpose(), X))
+    B = np.dot(X.transpose(), Y)
+    theta = np.dot(A, B)
+
+    return theta
+
+def predict(x_vector, mu, sigma):
+    # scale feature vector
+    for i in range(1, n):
+        x_vector[0][i] = (x_vector[0,i]- mu[0][i]) / sigma[0][i]
+
+    
+    return np.dot(x_vector, theta)
+if __name__ == '__main__':
+    plotData()
+    mu, sigma = normalizeFeatures()
+    print(mu,sigma)
+    theta=gradientDescent(theta)
+    print('Hypothesis coefficients from gradient descent:\n {}'.format(theta))
+    print('Hypothesis coefficients from normal equation:\n {}'.format(normalEquation()))
+    prediction_vector = np.array([1,45]).reshape(1,2)
+    g,h=prediction_vector.shape
+    o=prediction_vector[0,1];
+    z=predict(prediction_vector, mu, sigma)
+    e=z[0,0];
+    plt.plot(o,e,'ro')
+    print('Prediction for values [1, 7] is {}'.format(z))
+    plt.scatter(x, Y, color = "m", marker = "o", s = 10)
+    y=np.dot(X,theta)
+    plt.plot(x, y, color = "g")
