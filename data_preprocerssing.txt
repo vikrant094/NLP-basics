@@ -1,0 +1,4 @@
+-----------------------data preprocessing cheetsheet--------------------------
+1.to read commaseparated dile as dataframe -white=pd.read_csv('winequality-white.csv',engine="python",index_col=False, header=None, delimiter=";", quoting = 3)
+2.to make any row header of frame= white.columns=white.iloc[0]
+3. to drop any row in dataqframe- white=white.drop(white.index[0])
